@@ -1,0 +1,2 @@
+/usr/bin/ar qc libSockets.a  CMakeFiles/Sockets.dir/src/ClientSocket.cpp.o CMakeFiles/Sockets.dir/src/Connection.cpp.o CMakeFiles/Sockets.dir/src/DatagramSocket.cpp.o CMakeFiles/Sockets.dir/src/ServerSocket.cpp.o CMakeFiles/Sockets.dir/src/AbstractionsPosix.cpp.o CMakeFiles/Sockets.dir/src/PipeSignal.cpp.o
+/usr/bin/ranlib libSockets.a
