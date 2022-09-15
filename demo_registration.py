@@ -212,7 +212,7 @@ if __name__ == '__main__':
     open3d.io.write_point_cloud("data_ar_localization/cloud_bin_0.ply", receivedCloud)
     
 
-    point_cloud_files = ["data_ar_localization/cloud_bin_0.ply", "data_ar_localization/cloud_bin_1.ply"]
+    point_cloud_files = ["data_ar_localization/cloud_bin_0.ply", "data_ar_localization/reference_cloud_bin.ply"]
     path = 'results/Log_contraloss/'
     config = Config()
     config.load(path)
@@ -246,8 +246,8 @@ if __name__ == '__main__':
     src_keypts.points = open3d.utility.Vector3dVector(src_data["keypts"])
     src_scores = src_data["scores"]
 
-    tgt_pcd = open3d.io.read_point_cloud("data_ar_localization/cloud_bin_1.ply")
-    tgt_data = np.load("data_ar_localization/cloud_bin_1.npz")
+    tgt_pcd = open3d.io.read_point_cloud("data_ar_localization/reference_cloud_bin.ply")
+    tgt_data = np.load("data_ar_localization/reference_cloud_bin.npz")
     tgt_features = open3d.registration.Feature()
     tgt_features.data = tgt_data["features"].T
     tgt_keypts = open3d.geometry.PointCloud()

@@ -1,5 +1,4 @@
-# Learning-based AR/MR localization
-
+# 3D-to-3D-XR-localisation
 This repo contains the server and the cliend side of the Augmented Reality/Mixed Reality localization system based on automated 3D to 3D model registration.
 
 The server side is comprised of two main components:
@@ -42,11 +41,11 @@ Check installation by running the demo registration:
 
         python demo_registration.py
 
-Compile the server. Open the server folder with VSCode and compile it by pressing F7.
+Compile the server. Open the server folder in VSCode and compile it by pressing F7.
 
 Instructions
 
-The point cloud that serves as a reference should be put into the ar_localization folder and named "reference.ply". Before running the server, the descriptors for the reference must be prepared. Open the terminal in root and run:
+The point cloud that serves as a reference should be put into the ar_localization folder and named "reference_cloud_bin.ply". Before running the server, the descriptors for the reference must be prepared. Open the terminal in root and run:
 
         python prepare_reference.py
 

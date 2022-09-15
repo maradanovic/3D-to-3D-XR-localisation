@@ -188,7 +188,7 @@ def execute_global_registration(src_keypts, tgt_keypts, src_desc, tgt_desc, dist
         open3d.registration.TransformationEstimationPointToPoint(False), 4,
         [open3d.registration.CorrespondenceCheckerBasedOnEdgeLength(0.9),
          open3d.registration.CorrespondenceCheckerBasedOnDistance(distance_threshold)],
-        open3d.registration.RANSACConvergenceCriteria(4000000, 500))
+        open3d.registration.RANSACConvergenceCriteria(40000000, 500))
     return result
 
 def execute_icp(src_cloud, tgt_cloud, distance_threshold, initial_transform):
@@ -201,6 +201,7 @@ def execute_icp(src_cloud, tgt_cloud, distance_threshold, initial_transform):
     return result
 
 if __name__ == '__main__':
+    icp = True
 
     ar_mesh = open3d.io.read_triangle_mesh("data_ar_localization/mesh_ascii_0.ply")
     verticesNum = len(ar_mesh.vertices)
@@ -242,8 +243,8 @@ if __name__ == '__main__':
     src_keypts.points = open3d.utility.Vector3dVector(src_data["keypts"])
     src_scores = src_data["scores"]
 
-    tgt_pcd = open3d.io.read_point_cloud("data_ar_localization/reference.ply")
-    tgt_data = np.load("data_ar_localization/reference.npz")
+    tgt_pcd = open3d.io.read_point_cloud("data_ar_localization/reference_cloud_bin.ply")
+    tgt_data = np.load("data_ar_localization/reference_cloud_bin.npz")
     tgt_features = open3d.registration.Feature()
     tgt_features.data = tgt_data["features"].T
     tgt_keypts = open3d.geometry.PointCloud()
@@ -252,15 +253,23 @@ if __name__ == '__main__':
 
     result_ransac = execute_global_registration(src_keypts, tgt_keypts, src_features, tgt_features, 0.05)
 
+    result_tm = result_ransac.transformation
+
     print(result_ransac)
 
-    inverseTransformMatrix = np.linalg.inv(result_ransac.transformation)
+    if icp and (result_ransac.fitness> 0.1):
+        result_icp = execute_icp(src_pcd, tgt_pcd, 0.05, result_tm)
+
+        # Overwrite the fitting results using the new transformation matrix.
+        result_tm = result_icp.transformation
+
+    inverseTransformMatrix = np.linalg.inv(result_tm)
 
     if (result_ransac.fitness < 0.1):
         print("Registration unsuccessful.")
         exit(1)
     else:
-        np.savetxt("resultTransformationMatrix.txt", result_ransac.transformation, delimiter=" ")
+        np.savetxt("resultTransformationMatrix.txt", result_tm, delimiter=" ")
 
         #os.remove("data_ar_localization/mesh_ascii_0.ply")
         #os.remove("data_ar_localization/cloud_bin_0.ply")
@@ -298,3 +307,5 @@ if __name__ == '__main__':
     # open3d.geometry.PointCloud.estimate_normals(src_pcd)
     # src_pcd.paint_uniform_color([1, 0.706, 0])
     # open3d.visualization.draw_geometries([src_pcd] + box_list)
+
+    # exit(0)

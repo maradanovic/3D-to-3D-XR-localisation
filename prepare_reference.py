@@ -173,7 +173,7 @@ class RegTester:
 
 if __name__ == '__main__':
 
-    point_cloud_files = ["data_ar_localization/reference.ply"]
+    point_cloud_files = ["data_ar_testing/reference_cloud_bin.ply"]
     path = 'results/Log_contraloss/'
     config = Config()
     config.load(path)
