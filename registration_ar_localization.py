@@ -188,7 +188,7 @@ def execute_global_registration(src_keypts, tgt_keypts, src_desc, tgt_desc, dist
         open3d.registration.TransformationEstimationPointToPoint(False), 4,
         [open3d.registration.CorrespondenceCheckerBasedOnEdgeLength(0.9),
          open3d.registration.CorrespondenceCheckerBasedOnDistance(distance_threshold)],
-        open3d.registration.RANSACConvergenceCriteria(40000000, 500))
+        open3d.registration.RANSACConvergenceCriteria(4000000, 500))
     return result
 
 def execute_icp(src_cloud, tgt_cloud, distance_threshold, initial_transform):
@@ -269,7 +269,9 @@ if __name__ == '__main__':
         print("Registration unsuccessful.")
         exit(1)
     else:
-        np.savetxt("resultTransformationMatrix.txt", result_tm, delimiter=" ")
+        np.savetxt("data_ar_localization/temp/resultTransformationMatrix.txt", result_tm, delimiter=" ")
+
+        os.popen("cp data_ar_localization/temp/resultTransformationMatrix.txt data_ar_localization/temp/currentRelationMatrix.txt")
 
         #os.remove("data_ar_localization/mesh_ascii_0.ply")
         #os.remove("data_ar_localization/cloud_bin_0.ply")

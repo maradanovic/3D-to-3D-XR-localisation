@@ -6,10 +6,10 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Localization.unity
+    path: Assets/Scenes/Localisation.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
   m_configObjects:
-    Unity.XR.WindowsMR.Settings: {fileID: 11400000, guid: 3c4c3324eebacec4d9e518de2fddf69c,
+    Unity.XR.WindowsMR.Settings: {fileID: 11400000, guid: 7555c90e7b483444984c7b0ecf1c40a2,
       type: 2}
-    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: ebab167ec7dba2a42bf25530391b1087,
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 39516df1af6694145afe017e22c2a414,
       type: 2}

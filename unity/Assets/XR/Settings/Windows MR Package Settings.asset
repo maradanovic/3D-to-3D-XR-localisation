@@ -12,27 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e679265d16d650945812b915bb9d5cc3, type: 3}
   m_Name: Windows MR Package Settings
   m_EditorClassIdentifier: 
-  Keys: 0e00000001000000
+  Keys: 0e000000
   Values:
-  - {fileID: 8590891578032556749}
-  - {fileID: 1756832017219823494}
+  - {fileID: 3673637162726565337}
   BuildValues:
-  - {fileID: 4160667553468446447}
---- !u!114 &1756832017219823494
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ed912223f7b3af74d8e196b2a4e662b3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  DepthBufferFormat: 0
-  UseSharedDepthBuffer: 0
---- !u!114 &4160667553468446447
+  - {fileID: 1895141700365430564}
+--- !u!114 &1895141700365430564
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -46,7 +31,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   UsePrimaryWindowForDisplay: 1
   HolographicRemoting: 0
---- !u!114 &8590891578032556749
+--- !u!114 &3673637162726565337
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

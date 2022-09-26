@@ -51,6 +51,7 @@ public class LocalizationTcpClient : MonoBehaviour
     private string trianglesString;
     private string verticesNumString;
     private string trianglesNumString;
+    private string estimatedPositionString;
 
     private StringBuilder sbVertices = new StringBuilder();
     private StringBuilder sbTriangles = new StringBuilder();
@@ -64,15 +65,20 @@ public class LocalizationTcpClient : MonoBehaviour
     private Matrix4x4 transformationMatrix;
 
     //IP address and port of the server.
-    public string ipAddress = "192.168.1.114";
+    public string ipAddress = "10.233.60.193";
     public string port = "8013";
 
-    //Flag that is true if the mesh has been sent, and another one that is true if the transformation need to be applied.
+    //Flag that is true if the mesh has been sent, one that is true if the transformation need to be applied,
+    //and one to indicate relocalisation is requested instead of initial (global) localisation.
     private bool meshSent = false;
     private bool applyTransform = false;
+    private bool relocalisation = false;
 
-    //Button to control the start of localization
-    public Button startButton;
+    //Button to start the localization
+    public Button startLocalizationButton;
+
+    //Button to start the relocalization
+    public Button startRelocalizationButton;
 
     public GameObject statusTextGO;
     private TextMeshProUGUI statusText;
@@ -84,12 +90,18 @@ public class LocalizationTcpClient : MonoBehaviour
     GameObject world;
     GameObject boundary;
 
-    //The size of the boundary box in metres, by default 3m.
-    public float boundaryBoxSize = 3;
+    //The size of the boundary box in metres, by default 3m, for initial localisation and for the relocalisation.
+    public float boundaryBoxSize = 5;
+    public float relocBoundaryBoxSize = 3;
+    
 
     public GameObject cameraGO;
 
     private Stopwatch timer;
+
+    //remove this
+    //private int k = 0;
+    private IMixedRealitySpatialAwarenessMeshObserver observer;
 
     private void Start()
     {
@@ -97,7 +109,11 @@ public class LocalizationTcpClient : MonoBehaviour
 
         statusText = statusTextGO.GetComponent<TextMeshProUGUI>();
 
-        startButton.onClick.AddListener(() => StartLocalization());
+        startLocalizationButton.onClick.AddListener(() => StartLocalization());
+
+        startRelocalizationButton.onClick.AddListener(() => StartRelocalisation());
+
+        observer = CoreServices.GetSpatialAwarenessSystemDataProvider<IMixedRealitySpatialAwarenessMeshObserver>();
     }
 
     public void Update()
@@ -131,6 +147,8 @@ public class LocalizationTcpClient : MonoBehaviour
 
     public void Connect(string host, string port)
     {
+        UnityEngine.Debug.Log("Connect started");
+
         if (_useUWP)
         {
             ConnectUWP(host, port);
@@ -165,7 +183,7 @@ public class LocalizationTcpClient : MonoBehaviour
             reader = new StreamReader(streamIn);
 
             RestartExchange();
-            successStatus = "Connected!";
+            //successStatus = "Connected!";
         }
         catch (Exception e)
         {
@@ -179,6 +197,9 @@ public class LocalizationTcpClient : MonoBehaviour
 #if !UNITY_EDITOR
         errorStatus = "Unity TCP client used in UWP!";
 #else
+        UnityEngine.Debug.Log("UnityEngine connect started");
+
+
         try
         {
             if (exchangeThread != null) StopExchange();
@@ -189,7 +210,7 @@ public class LocalizationTcpClient : MonoBehaviour
             writer = new StreamWriter(stream) { AutoFlush = true };
 
             RestartExchange();
-            successStatus = "Connected!";
+            //successStatus = "Connected!";
         }
         catch (Exception e)
         {
@@ -201,7 +222,7 @@ public class LocalizationTcpClient : MonoBehaviour
     private bool exchangeStopRequested = false;
 
     private string errorStatus = null;
-    private string successStatus = null;
+    //private string successStatus = null;
 
     public void RestartExchange()
     {
@@ -232,9 +253,16 @@ public class LocalizationTcpClient : MonoBehaviour
                 writer.Write(trianglesNumString);
 
                 //Notify the server that the mesh is sent, log this and lower the flag.
-                writer.Write("Mesh sent!");
+                if (!relocalisation)
+                    writer.Write("Mesh sent!");
+                else
+                {
+                    writer.Write("\n" + estimatedPositionString);
+                    writer.Write("Reloc sent!");
+                }
+
                 UnityEngine.Debug.Log("Mesh sent!");
-                meshSent = true;
+                
                 newStatusText = "Mesh sent to server. Registering...";
                 updateStatus = true;
 
@@ -244,6 +272,8 @@ public class LocalizationTcpClient : MonoBehaviour
                 verticesNumString = null;
                 trianglesNumString = null;
                 writer.Flush();
+
+                meshSent = true;
             }
 
 
@@ -265,9 +295,46 @@ public class LocalizationTcpClient : MonoBehaviour
 
                 transformationMatrix = Localization.DeserializeVector4Array(received);
 
+                UnityEngine.Debug.Log(transformationMatrix);
+
                 applyTransform = true;
 
                 exchangeStopRequested = true;
+
+                received = null;
+
+                StopExchange();
+            }
+            else if (received.EndsWith("Reloc matrix sent!\n"))
+            {
+                UnityEngine.Debug.Log("Reloc matrix received!");
+
+                received = received.Remove(received.Length - 18, 18);
+
+                transformationMatrix = Localization.DeserializeVector4Array(received);
+
+                UnityEngine.Debug.Log(transformationMatrix);
+
+                applyTransform = true;
+
+                exchangeStopRequested = true;
+
+                received = null;
+
+                StopExchange();
+            }
+            else if (received.EndsWith("Unsuccessful!\n"))
+            {
+                UnityEngine.Debug.Log("Registration unsuccessful.");
+
+                //newStatusText = "Registration unsuccessful.";
+                //updateStatus = true;
+
+                exchangeStopRequested = true;
+
+                received = null;
+
+                StopExchange();
             }
             else
                 UnityEngine.Debug.Log("Read message from server: " + received);
@@ -281,15 +348,47 @@ public class LocalizationTcpClient : MonoBehaviour
 
                 transformationMatrix = Localization.DeserializeVector4Array(received);
 
+                UnityEngine.Debug.Log(transformationMatrix);
+
                 applyTransform = true;
 
                 exchangeStopRequested = true;
+
+                received = null;
+
+                StopExchange();
+            }
+            else if (received.EndsWith("Reloc matrix sent!"))
+            {
+                received = received.Remove(received.Length - 17, 17);
+
+                transformationMatrix = Localization.DeserializeVector4Array(received);
+
+                UnityEngine.Debug.Log(transformationMatrix);
+
+                applyTransform = true;
+
+                exchangeStopRequested = true;
+
+                received = null;
+
+                StopExchange();
+            }
+            else if (received.EndsWith("Unsuccessful!"))
+            {
+                UnityEngine.Debug.Log("Registration unsuccessful.");
+
+                //newStatusText = "Registration unsuccessful.";
+                //updateStatus = true;
+
+                exchangeStopRequested = true;
+
+                received = null;
+
+                StopExchange();
             }
             else
                 UnityEngine.Debug.Log("Read message from server: " + received);
-
-
-
 #endif
 
         }
@@ -302,7 +401,18 @@ public class LocalizationTcpClient : MonoBehaviour
 #if UNITY_EDITOR
         if (exchangeThread != null)
         {
-            exchangeThread.Abort();
+            UnityEngine.Debug.Log("StopExchange started Unity.");
+
+            //newStatusText = "StopExchange started Unity.";
+            //updateStatus = true;
+
+            //exchangeThread.Abort();
+
+            //UnityEngine.Debug.Log("Thread Aborted Unity.");
+
+            //newStatusText = "Thread Aborted Unity.";
+            //updateStatus = true;
+
             stream.Close();
             client.Close();
             writer.Close();
@@ -310,16 +420,37 @@ public class LocalizationTcpClient : MonoBehaviour
 
             stream = null;
             exchangeThread = null;
+
+            UnityEngine.Debug.Log("StopExchange ended Unity.");
+
+            //newStatusText = "StopExchange ended Unity.";
+            //updateStatus = true;
         }
 #else
         if (exchangeTask != null) {
-            exchangeTask.Wait();
+            UnityEngine.Debug.Log("StopExchange started UWP.");
+
+            //newStatusText = "StopExchange started UWP.";
+            //updateStatus = true;
+
+            //exchangeTask.Wait();
+
             socket.Dispose();
             writer.Dispose();
             reader.Dispose();
+  
+            //UnityEngine.Debug.Log("Test UWP");
+
+            //newStatusText = "Stuffe disposed off UWP.";
+            //updateStatus = true;
 
             socket = null;
             exchangeTask = null;
+
+            UnityEngine.Debug.Log("StopExchange ended UWP.");
+
+            //newStatusText = "StopExchange ended UWP.";
+            //updateStatus = true;
         }
 #endif
         writer = null;
@@ -333,25 +464,30 @@ public class LocalizationTcpClient : MonoBehaviour
 
     public void RetrieveAndSerializeMesh()
     {
+        UnityEngine.Debug.Log("RetrieveAndSerialize started.");
+
         timer = new Stopwatch();
         timer.Start();
-
-        var observer = CoreServices.GetSpatialAwarenessSystemDataProvider<IMixedRealitySpatialAwarenessMeshObserver>();
 
         int verticesNum = 0;
         int trianglesNum = 0;
 
+        totalNumberOfMeshParts = 0;
+
+        sbTriangles.Clear();
+        sbVertices.Clear();
+
+        estimatedPositionString = Localization.SerializeVector3Position(cameraGO.transform.position);
+
         Bounds boundaryBounds = boundary.GetComponent<MeshRenderer>().bounds;
-
-
 
         foreach (SpatialAwarenessMeshObject meshObject in observer.Meshes.Values)
         {
-            Mesh mesh = meshObject.Filter.mesh;
-
-            if (boundaryBounds.Contains(mesh.bounds.center))
+            if (boundaryBounds.Intersects(meshObject.Renderer.bounds))
             {
                 totalNumberOfMeshParts++;
+
+                Mesh mesh = meshObject.Filter.mesh;
 
                 Transform tf = meshObject.Filter.GetComponent<Transform>();
 
@@ -382,14 +518,14 @@ public class LocalizationTcpClient : MonoBehaviour
 
     private void StartLocalization()
     {
-        CreateBoundary();
+        CreateBoundary(boundaryBoxSize);
 
         Stopwatch slTimer = new Stopwatch();
         slTimer.Start();
 
         exchangeStopRequested = false;
 
-        newStatusText = "Mesh serialization started.";
+        newStatusText = "Mesh serialisation and localisation started.";
         updateStatus = true;
 
         RetrieveAndSerializeMesh();
@@ -398,15 +534,35 @@ public class LocalizationTcpClient : MonoBehaviour
         trianglesString = sbTriangles.ToString();
 
         slTimer.Stop();
-        UnityEngine.Debug.Log(slTimer.Elapsed);
+        UnityEngine.Debug.Log("slTimer elapsed: " + slTimer.Elapsed);
 
         UnityEngine.Debug.Log("Mesh serialized");
 
         newStatusText = "Mesh serialized in " + slTimer.Elapsed + " s for " + totalNumberOfMeshParts + " parts. Sending mesh...";
         updateStatus = true;
 
-        //newStatusText = "Mesh serialized! Sending to server...";
-        //updateStatus = true;
+        Connect(ipAddress, port);
+    }
+
+    private void StartRelocalisation()
+    {
+        CreateBoundary(relocBoundaryBoxSize);
+
+        newStatusText = "Mesh serialisation and relocalisation started.";
+        updateStatus = true;
+
+        UnityEngine.Debug.Log("Mesh relocalisation started.");
+
+        relocalisation = true;
+        exchangeStopRequested = false;
+        meshSent = false;
+
+        RetrieveAndSerializeMesh();
+
+        verticesString = sbVertices.ToString();
+        trianglesString = sbTriangles.ToString();
+
+        UnityEngine.Debug.Log("Mesh serialized");
 
         Connect(ipAddress, port);
     }
@@ -423,12 +579,14 @@ public class LocalizationTcpClient : MonoBehaviour
         world.transform.rotation = Quaternion.Inverse(quat);
     }
 
-    private void CreateBoundary()
+    private void CreateBoundary(float size)
     {
         Destroy(boundary);
         boundary = GameObject.CreatePrimitive(PrimitiveType.Cube);
+
         boundary.transform.position = cameraGO.transform.position;
+
         boundary.GetComponent<MeshRenderer>().enabled = false;
-        boundary.transform.localScale = new Vector3(boundaryBoxSize, boundaryBoxSize, boundaryBoxSize);
+        boundary.transform.localScale = new Vector3(size, size, size);
     }
 }

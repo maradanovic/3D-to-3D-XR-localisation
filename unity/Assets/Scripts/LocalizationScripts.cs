@@ -62,5 +62,11 @@ namespace Assets.Scripts
             }
         }
 
+        public static string SerializeVector3Position(Vector3 position)
+        {
+            string result;
+            result = position.x + " " + position.y + " " + position.z;
+            return result;
+        }
     }
 }

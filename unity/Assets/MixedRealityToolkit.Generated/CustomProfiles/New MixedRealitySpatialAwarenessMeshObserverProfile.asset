@@ -18,11 +18,11 @@ MonoBehaviour:
   observationExtents: {x: 100, y: 100, z: 100}
   observerVolumeType: 1
   updateInterval: 1
-  meshPhysicsLayer: 31
+  meshPhysicsLayer: 2
   levelOfDetail: 2
   trianglesPerCubicMeter: 0
   recalculateNormals: 0
-  displayOption: 0
+  displayOption: 1
   visibleMaterial: {fileID: 2100000, guid: 47c3d3b0d8143e3489351498fceed55d, type: 2}
   occlusionMaterial: {fileID: 2100000, guid: a809c7ea182b699409443d46d5b42435, type: 2}
   physicsMaterial: {fileID: 0}
