@@ -9,13 +9,24 @@ The first part is a modified TensorFlow implementation of [D3Feat](https://githu
 
 The client side is a Unity project containing a set of C# scripts that perform the mesh extraction, communication with the server, and other tasks.
 
+If you find this useful, please cite:
+
+```bash
+@article{radanovic2023,
+title = {Aligning the Real and the Virtual World: {{Mixed}} Reality Localisation Using Learning-Based {{3D}}\textendash{{3D}} Model Registration},
+author = {Radanovic, Marko and Khoshelham, Kourosh and Fraser, Clive},
+year = {2023},
+journal = {Advanced Engineering Informatics},
+}
+```
+
 ## Introduction
 
-To be added after the paper is published.
+Existing camera localisation methods for indoor augmented and mixed reality (AR/MR) are almost exclusively image based. The main issue with image-based methods is that they do not scale well and, as a consequence, AR/MR applications are mostly limited to small-scale room experiences. To tackle the challenge of large-scale indoor AR/MR localisation, we propose a novel framework for AR/MR localisation based solely on 3D–3D model registration. The localisation is performed by an automated registration of a low-density model of the surroundings created by the device to the existing point cloud of the environment based on learning-based keypoint detection and description. Our solution takes advantage of recent significant improvements in automated coarse-to-fine 3D–3D model registration methods. Unlike the existing image-based AR/MR localisation methods, which are restricted to small room-sized environments, the proposed 3D registration-based approach is applicable to large environments and is robust to changes in colour and illumination of the scene. We perform extensive testing and analysis of the approach with real-world experiments and datasets using a prototype developed for the Microsoft HoloLens. Experimental results show high localisation reliability and accuracy, with a mean translation error of 2.8 cm and a mean rotation error of 0.30°. The method performs well in a large-scale environment (300 sqrm) and shows good robustness to changes in scene geometry.
 
 ## Installation (server side)
 
-Tested and working with Ubuntu 16.04, TensorFlow 1.12.0, CUDA 9.0 and cuDNN 7.4.
+Tested and working with Ubuntu 18.04, TensorFlow 1.12.0, CUDA 9.0 and cuDNN 7.4.
 
 Make sure all required packages are installed by running:
 
